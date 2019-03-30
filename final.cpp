@@ -62,9 +62,7 @@ int main ( int argc, char *argv[]){
 	particles sysParts(num);
 
 // On fait calculé les valeurs initiales dans l'espace des phases à la classe particles
-	cout << "1" << endl;
 	sysParts.setInitialValuesWithPk(lbox, H, eoa, foa, coeff);
-	cout << "2" << endl;
 	for(int i=1;i<nstep+1;i++){
 		s += ds;
 		a = s*s;
@@ -78,10 +76,9 @@ int main ( int argc, char *argv[]){
 
 		t1 = t2;
 	}
-	cout << 3 << endl;
+
 	sysParts.savePhaseSpace();
-	cout << 4 << endl;
 	sysParts.savePn(lbox,1);
-	cout << 5 << endl;
+
 	return 0;
 }
