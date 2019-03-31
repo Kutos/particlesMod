@@ -1,0 +1,12 @@
+set terminal postscript color
+set output '| ps2pdf - pk_1000.pdf'
+
+set logscale xy
+set format x "%L"
+set format y "%L"
+set title "Power spectrum pn with kn"
+set xlabel "kn"
+set ylabel "pn"
+
+plot "pk_step_1000.txt" u 1:2 with lines,
+

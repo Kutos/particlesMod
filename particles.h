@@ -41,6 +41,7 @@ class particles{
 		out.write((char *) data, N*sizeof(double));
 		out.close();
 	}
+
 	public :
 	long num;
 	double *x;
@@ -99,25 +100,42 @@ class particles{
 		for(int i=0;i<num;i++){*(v+i)=H*eoa*foa*( *(x+i) - i*lbox/num );}
 	}
 // Permet de sauvegarder en asci, flag =1 ou en binary les pn
-	void savePn(double lbox, int flag){
+	void savePk(double lbox, double dofai2, double dofa02, int flag){
 		int numk = num/2 + 1;
-		double pn[numk], kn[numk];
-		estimate_pn(x,num,lbox,kn,pn);
+		double pk[numk], kn[numk];
+		estimate_pn(x,num,lbox,kn,pk);
+		for(int i=0;i<numk;i++){ 2*M_PI/lbox * dofai2 /dofa02 *(*pk+i);}
 		string filename = "./DATA/pk_step_" + to_string(step);
 		switch(flag){
 			case 1:
-				saveAsciiFile(filename, pn, numk, 0, kn);
+				saveAsciiFile(filename, pk, numk, 1, kn);
 				break;
 			default:
-				saveBinaryFile(filename,pn, numk);
+				saveBinaryFile(filename,pk, numk);
 		}
 	}
 // Permet de sauvegarder en asci les particules de l'espace des phases
-	void savePhaseSpace(){
+	string savePhaseSpace(){
 		string filename = "./DATA/phase_space_step_" + to_string(step);
-		saveAsciiFile(filename, v, num, 0, x);
+		saveAsciiFile(filename, v, num, 1, x);
+		return filename;
 	}
+// Permet de plot l'espace des phase
+	void plotPhaseSpace(){
+		string filename;
+		filename = savePhaseSpace();
 
+		FILE *gnuplot = popen("gnuplot -persistent","w");
+
+		fprintf(gnuplot,"set terminal postscript color\n");
+		fprintf(gnuplot,"set output \"| ps2pdf - ./DATA/phase_space_%i.pdf'\"\n",step);
+
+		fprintf(gnuplot,"set title \"Phase space at %d step\n",step);
+		fprintf(gnuplot,"set xlabel \"x\"\n");
+		fprintf(gnuplot,"set ylabel \"v\"\n");
+    	fprintf(gnuplot,"plot '%s' u 1:2 \n",filename);
+		pclose(gnuplot);
+	}
 // Permet de faire bouger les particules d'un pas de temps
 	void move(double dt, double lbox){
 		for(int i=0;i<num;i++){

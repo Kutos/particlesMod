@@ -77,8 +77,8 @@ int main ( int argc, char *argv[]){
 		t1 = t2;
 	}
 
-	sysParts.savePhaseSpace();
-	sysParts.savePn(lbox,1);
+	sysParts.plotPhaseSpace();
+	sysParts.savePk(lbox,dofa(a,om0)*dofa(a,om0), dofa(0.1,om0)*dofa(0.1,om0), 1);
 
 	return 0;
 }
