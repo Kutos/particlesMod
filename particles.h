@@ -22,18 +22,19 @@ class particles{
 // enabledRef = 2 : on veut avoir le numero de la ligne en première colone du fichier //
 // enabledRef = ? : on veut avoir qu'une colone remplite avec le tableau data //
 	void saveAsciiFile(string filename, double *data, int N, int enabledRef, double *ref){
+
 		filename += ".txt";
 		ofstream outFile;
 		outFile.open(filename.c_str());
 		switch(enabledRef){
 			case 1:
-				for(int i=0;i<N;i++){outFile << *(ref+i) << " " << *(data+i) << endl;}
+				for(int i=0;i<N;i++) outFile << *(ref+i) << " " << *(data+i) << endl;
 				break;
 			case 2:
-				for(int i=0;i<N;i++){outFile << i << " " << *(data+i) << endl;}
+				for(int i=0;i<N;i++) outFile << i << " " << *(data+i) << endl;
 				break;
 			default:
-				for(int i=0;i<N;i++){outFile << *(data+i) << endl;}
+				for(int i=0;i<N;i++) outFile << *(data+i) << endl;
 		}
 		outFile.close();
 	}
@@ -89,24 +90,29 @@ class particles{
 
 		string ref = "./PARTICLES/initial_pk_linear_theo.data";
 
-		std::ifstream in(ref.c_str(), std::ios::in | std::ios::binary);
-		in.read((char *) pk, (numk)*sizeof(double));
-		in.close();
+		std::ifstream inFile(ref.c_str(), std::ios::in | std::ios::binary);
+		inFile.read((char *) pk, (numk)*sizeof(double));
+		inFile.close();
 
 		ref = "./DATA/initial_pk_linear_theo.txt";
-		std::ofstream outfile;
-		outfile.open(ref.c_str());
-		for(int i=0;i<numk;i++) outfile << (1+i)*2.*M_PI/lbox << " " << *(pk+i) << endl;
-		outfile.close();
+		std::ofstream outFile;
+		outFile.open(ref.c_str());
+		for(int i=0;i<numk;i++) outFile << (1+i)*2.*M_PI/lbox << " " << *(pk+i) << endl;
+		outFile.close();
 
 		for(int i=0;i<num;i++) *(x+i) = i*lbox/num;
 		ic_generator(num, lbox, H*eofa*fofa, 1, pk, x, v);
-		calGama(coeff,lbox,H,eofa);
 	}
-// Permet de retrouver les vitesses initiales à partir de positions random des particules
-	void findVInit(double lbox, double H, double eoa, double foa){
-		for(int i=0;i<num;i++){*(v+i)=H*eoa*foa*( *(x+i) - i*lbox/num );}
+// Permet de charger un fichier sources pour les positions des particules et d'extraire x et v
+	void setInitialValuesWithPosFile(int filenumber, double lbox, double H, double eofa, double fofa){
+		string ref = "./PARTICLES/initial_positions_" + to_string(filenumber) + ".data";
+		std::ifstream inFile(ref.c_str(), std::ios::in | std::ios::binary);
+		inFile.read((char *) x, (num)*sizeof(double));
+		inFile.close();
+
+		for(int i=0;i<num;i++) *(v+i) = ( *(x+i) - i*lbox/num ) * H*eofa*fofa;
 	}
+
 // Permet de sauvegarder en asci, flag =1 ou en binary les pn
 	void savePk(double lbox, double dofai2, double dofa02, int flag){
 		int numk = num/2 + 1;
@@ -116,7 +122,7 @@ class particles{
 			*(pk+i) *= 1/((2.*M_PI/lbox) * (dofai2/dofa02));
 			*(kn+i) = (i+1)*2.*M_PI/lbox;
 		}
-		string filename = "./DATA/pk_step_" + to_string(step);
+		string filename = "./DATA/pk/step_" + to_string(step);
 		switch(flag){
 			case 1:
 				saveAsciiFile(filename, pk, numk, 1, kn);
@@ -127,7 +133,7 @@ class particles{
 	}
 // Permet de sauvegarder en asci les particules de l'espace des phases
 	void savePhaseSpace(){
-		string filename = "./DATA/phase_space_step_" + to_string(step);
+		string filename = "./DATA/phase_space/step_" + to_string(step);
 		saveAsciiFile(filename, v, num, 1, x);
 	}
 // Permet de faire bouger les particules d'un pas de temps

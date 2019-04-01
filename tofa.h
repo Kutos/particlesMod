@@ -7,3 +7,4 @@ double tofa ( double a, double om0 )
 
   return   2./3./sqrt(1.-om0)*log( ( sqrt(om0+(1-om0)*ai3) + sqrt((1-om0)*ai3) )/sqrt(om0) ) / 100.;
 }
+

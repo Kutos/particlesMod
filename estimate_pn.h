@@ -21,3 +21,4 @@ void estimate_pn (double * positions, int num, double lbox, double * pn)
     }
   *pn = 0 ; 
 }
+
