@@ -45,7 +45,7 @@ int main ( int argc, char *argv[]){
 // Initialisation des constantes cosmologiques
 	double H=100., a=0.1, om0=0.32, G=4.30035e-9, pc0=2.77573e11;
 // Variable utile pour la sauvegarde de données
-	double dofa02 = dofa(a,om0), dofai2;
+	double dofa02 = dofa(a,om0)*dofa(a,om0), dofai2;
 // Réglage du redshit initial et final de la simulation
 	double smin=sqrt(a),smax=sqrt(1./(1.+0.5)),ds;
 	ds = (smax-smin)/nstep;
