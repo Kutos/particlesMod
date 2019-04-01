@@ -11,9 +11,11 @@ class particles{
 	private :
 
 // nombre de pas effectué
-	long step;
+	int step;
 // retourne le signe
-	int Sg(double a){return 1-(a<0)*2;}
+	int Sg(double a){
+		return 1-(a<0)*2;
+	}
 // Enregistre un fichier en Ascii //
 // N la taille du tableau //
 // enabledRef = 1 : on a donné un tableau ref que l'on veut en première colonne du fichier //
@@ -89,9 +91,15 @@ class particles{
 
 		std::ifstream in(ref.c_str(), std::ios::in | std::ios::binary);
 		in.read((char *) pk, (numk)*sizeof(double));
-
 		in.close();
 
+		ref = "./DATA/initial_pk_linear_theo.txt";
+		std::ofstream outfile;
+		outfile.open(ref.c_str());
+		for(int i=0;i<numk;i++) outfile << (1+i)*2.*M_PI/lbox << " " << *(pk+i) << endl;
+		outfile.close();
+
+		for(int i=0;i<num;i++) *(x+i) = i*lbox/num;
 		ic_generator(num, lbox, H*eofa*fofa, 1, pk, x, v);
 		calGama(coeff,lbox,H,eofa);
 	}
@@ -103,38 +111,24 @@ class particles{
 	void savePk(double lbox, double dofai2, double dofa02, int flag){
 		int numk = num/2 + 1;
 		double pk[numk], kn[numk];
-		estimate_pn(x,num,lbox,kn,pk);
-		for(int i=0;i<numk;i++){ 2*M_PI/lbox * dofai2 /dofa02 *(*pk+i);}
+		estimate_pn(x,num,lbox,pk);
+		for(int i=0;i<numk;i++){
+			*(pk+i) *= 1/((2.*M_PI/lbox) * (dofai2/dofa02));
+			*(kn+i) = (i+1)*2.*M_PI/lbox;
+		}
 		string filename = "./DATA/pk_step_" + to_string(step);
 		switch(flag){
 			case 1:
 				saveAsciiFile(filename, pk, numk, 1, kn);
 				break;
 			default:
-				saveBinaryFile(filename,pk, numk);
+				saveBinaryFile(filename, pk, numk);
 		}
 	}
 // Permet de sauvegarder en asci les particules de l'espace des phases
-	string savePhaseSpace(){
+	void savePhaseSpace(){
 		string filename = "./DATA/phase_space_step_" + to_string(step);
 		saveAsciiFile(filename, v, num, 1, x);
-		return filename;
-	}
-// Permet de plot l'espace des phase
-	void plotPhaseSpace(){
-		string filename;
-		filename = savePhaseSpace();
-
-		FILE *gnuplot = popen("gnuplot -persistent","w");
-
-		fprintf(gnuplot,"set terminal postscript color\n");
-		fprintf(gnuplot,"set output \"| ps2pdf - ./DATA/phase_space_%i.pdf'\"\n",step);
-
-		fprintf(gnuplot,"set title \"Phase space at %d step\n",step);
-		fprintf(gnuplot,"set xlabel \"x\"\n");
-		fprintf(gnuplot,"set ylabel \"v\"\n");
-    	fprintf(gnuplot,"plot '%s' u 1:2 \n",filename);
-		pclose(gnuplot);
 	}
 // Permet de faire bouger les particules d'un pas de temps
 	void move(double dt, double lbox){
@@ -142,22 +136,24 @@ class particles{
 			*(x+i) += *(v+i)*dt;
 			*(v+i) += *(gama+i)*dt;
 
-			*(x+i) += (( *(x+i) < 0 ) - ( *(x+i) > lbox ))*lbox;
+			*(x+i) += ((*(x+i) < 0) - (*(x+i) > lbox))*lbox;
 		}
 		step += 1;
 	}
 
 // Calcul le champs d'accélération des particules
 	void calGama(double coeff, double lbox, double H, double eofa){
-		double dx;
-		std::memset(gama, 0, num*sizeof(double));
+		double dx = 0;
+		std::memset(gama,0,num*sizeof(double));
 		for(int i=0;i<num;i++){
 			for(int j=0;j<num;j++){
-				dx = *(x+j) - (*(x+i));
-				dx -= (dx>lbox/2)*lbox;
-				*(gama+i) += Sg(dx)-2*dx/lbox;
+
+				dx = *(x+j) - *(x+i);
+				dx += ((dx < -lbox/2) - (dx>lbox/2)) * lbox;
+
+				*(gama+i) += Sg(dx)-2.*dx/lbox;
 			}
-			*(gama+i) = (*(gama+i))*coeff - 2*H*eofa*(*v+i);
+			*(gama+i) = *(gama+i)*coeff - *(v+i)*2.*H*eofa;
 		}
 	}
 };

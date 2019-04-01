@@ -43,7 +43,7 @@ int main ( int argc, char *argv[]){
 	}
 
 // Initialisation des constantes cosmologiques
-	double H=100., a=0.1, om0=0.32, G=4.30035e-9, pc0=2.7757e11;
+	double H=100., a=0.1, om0=0.32, G=4.30035e-9, pc0=2.77573e11;
 
 // Réglage du redshit initial et final de la simulation
 	double smin=sqrt(a),smax=sqrt(1./(1.+0.5)),ds;
@@ -56,7 +56,7 @@ int main ( int argc, char *argv[]){
 	foa = fofa(a,om0);
 	s=smin;
 	t1 = tofa(a,om0);
-	coeff = 2*M_PI*G*om0*pc0*lbox/(num*a*a*a);
+	coeff = 2.*M_PI*G*om0*pc0*lbox/(num*a*a*a);
 
 // On créer la variable de classe particles qui contient la majorité de l'algorithme
 	particles sysParts(num);
@@ -69,7 +69,7 @@ int main ( int argc, char *argv[]){
 
 		eoa = eofa(a,om0);
 		t2 = tofa(a,om0);
-		coeff = 2*M_PI*G*om0*pc0*lbox/(num*a*a*a);
+		coeff = 2.*M_PI*G*om0*pc0*lbox/(num*a*a*a);
 
 		sysParts.move(t2-t1,lbox);
 		sysParts.calGama(coeff, lbox,H, eoa);
@@ -77,8 +77,8 @@ int main ( int argc, char *argv[]){
 		t1 = t2;
 	}
 
-	sysParts.plotPhaseSpace();
-	sysParts.savePk(lbox,dofa(a,om0)*dofa(a,om0), dofa(0.1,om0)*dofa(0.1,om0), 1);
+	sysParts.savePhaseSpace();
+	sysParts.savePk(lbox,(dofa(a,om0)*dofa(a,om0)),(dofa(0.1,om0)*dofa(0.1,om0)), 1);
 
 	return 0;
 }
